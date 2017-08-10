@@ -32,3 +32,7 @@ case class TokenResponse(
                           tokenType: String,
                           refreshToken: String
                           )
+case class User(
+                 id: Long,
+                 email: String
+                 )
