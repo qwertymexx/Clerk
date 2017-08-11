@@ -1,7 +1,14 @@
 package com.marmend.clerk.service
 
 import com.marmend.clerk.model.{GoogleCredential, RefreshTokenResponse, TokenResponse, User}
+import org.http4s.UriTemplate._
+
+import org.http4s.Uri
+import org.http4s.UriTemplate
+import org.http4s.Uri.RegName
 import scalaj.http._
+import org.http4s.syntax.string._
+
 
 /**
  * Created by maksim on 8/10/17.
@@ -12,20 +19,25 @@ class AuthService {
   private val credentials = loadApp
 
   /** This function build a link for allowing user to grant permission to current service to use google api
-    * which accosiated with user.email
+    * which associated with user.email
     * @param user - email
-    * @return a link which needs to be clicked in browser to grant permission and gerenerate access/refresh tokens
+    * @return a link which needs to be clicked in browser to grant permission and generate access/refresh tokens
     */
 
-  def userUri(user: User): String = {
-    //String interpolation could be potentially replaced with scala-uri library from io.lemonlabs
-
-    s"""$authUrlBase?response_type=code&client_id=${credentials.clientId}&
-       |redirect_uri=${credentials.redirectUrl}&scope=${credentials.scopes.mkString(" ")}&
-       |state=beekeeper!&login_hint=${user.email}&
-       |include_granted_scopes=true
-     """.stripMargin.replaceAll("\n", "")
-
+  def userUri(user: User) = {
+    val template = UriTemplate(
+      authority = Some(Uri.Authority(host = Uri.RegName("accounts.google.com/o/oauth2/auth"))),
+      scheme = Some("https".ci),
+      query = List(
+        ParamElm("response_type", "code"),
+        ParamElm("client_id", credentials.clientId),
+        ParamElm("redirect_uri", credentials.redirectUrl),
+        ParamElm("scope", credentials.scopes.mkString(" ")),
+        ParamElm("state", "beekeeper!"),
+        ParamElm("login_hint", user.email),
+        ParamElm("include_granted_scopes", "true")
+      ))
+    template.toUriIfPossible
   }
 
   /** Create credentials for user
@@ -50,8 +62,7 @@ class AuthService {
     }
 
     GoogleCredential(
-      None,
-      user.id,
+      user.email,
       tokenData.accessToken,
       tokenData.refreshToken
     )

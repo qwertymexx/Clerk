@@ -6,7 +6,7 @@ package com.marmend.clerk.model
 
 case class DriveResource(link: String, title: String, thumbnail: String)
 
-case class User(id: Long, email: String)
+case class User(email: String)
 
 case class GoogleApp(
                       clientId: String,
@@ -16,8 +16,7 @@ case class GoogleApp(
                       )
 
 case class GoogleCredential(
-                             id: Option[Long],
-                             userId: Long,
+                             userEmail: String,
                              accessToken: String,
                              refreshToken: String
                              )
